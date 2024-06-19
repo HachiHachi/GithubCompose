@@ -1,9 +1,10 @@
 package com.julian.githubcompose.ui.feature.user_list
 
-import android.util.Log
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,17 +32,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import coil.transform.CircleCropTransformation
 import com.julian.githubcompose.R
+import com.julian.githubcompose.model.response.UserListResponse
+import com.julian.githubcompose.ui.component.CircleAvatarImage
+import com.julian.githubcompose.ui.component.BadgeTextView
 import com.julian.githubcompose.ui.component.CircularLoadingBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,12 +60,13 @@ fun UserListScreen(
             CategoriesAppBar()
         },
         content = {
-            Box(modifier = Modifier
-                .padding(it)
-                .background(color = MaterialTheme.colorScheme.background)) {
+            Box(
+                modifier = Modifier
+                    .padding(it)
+                    .background(color = MaterialTheme.colorScheme.background)
+            ) {
                 UserBody(uiState, userListViewModel)
             }
-
         }
     )
 }
@@ -74,18 +76,17 @@ fun UserListScreen(
 fun UserBody(
     uiState: UserListViewModel.UserListState,
     userListViewModel: UserListViewModel,
-    onItemClicked: (id: UserListViewModel.TestItem) -> Unit = { }
+    onItemClicked: (id: UserListResponse) -> Unit = { }
 ) {
     Box(modifier = Modifier) {
         when (uiState) {
             is UserListViewModel.UserListState.Error -> {
-                ErrorView(uiState.msgCode)
+                ErrorView(uiState.msgCode, uiState.msgContent)
             }
 
             is UserListViewModel.UserListState.Success -> {
-                Log.d("dadaSuccess", uiState.categories.size.toString())
                 UserList(
-                    data = uiState.categories,
+                    data = uiState.list,
                     viewModel = userListViewModel,
                     onItemClicked = onItemClicked
                 )
@@ -101,9 +102,9 @@ fun UserBody(
 
 @Composable
 fun UserList(
-    data: List<UserListViewModel.TestItem>,
+    data: List<UserListResponse>,
     viewModel: UserListViewModel,
-    onItemClicked: (id: UserListViewModel.TestItem) -> Unit
+    onItemClicked: (id: UserListResponse) -> Unit
 ) {
     LazyColumn(Modifier.padding(4.dp)) {
         data.forEachIndexed { index, item ->
@@ -117,8 +118,7 @@ fun UserList(
                     CircularLoadingBar()
                     Spacer(modifier = Modifier.height(8.dp))
                     LaunchedEffect(Unit) {
-                        Log.d("dada", "aaa")
-                        viewModel.getUserList()
+                        viewModel.getUserList(data.last().id, 20)
                     }
                 }
             }
@@ -128,7 +128,7 @@ fun UserList(
 
 
 @Composable
-fun UserItemCard(item: UserListViewModel.TestItem, onItemClicked: (id: UserListViewModel.TestItem) -> Unit) {
+fun UserItemCard(item: UserListResponse, onItemClicked: (id: UserListResponse) -> Unit) {
     Card(
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -153,7 +153,10 @@ fun UserItemCard(item: UserListViewModel.TestItem, onItemClicked: (id: UserListV
                 )
         ) {
             Box(modifier = Modifier.align(alignment = Alignment.CenterVertically)) {
-                UserAvatar("avatar Url")
+                CircleAvatarImage(
+                    avatarUrl = item.avatar_url,
+                    default = R.drawable.img_default_avatar, modifier = Modifier.size(48.dp)
+                )
             }
             UserItem(
                 item = item,
@@ -166,38 +169,24 @@ fun UserItemCard(item: UserListViewModel.TestItem, onItemClicked: (id: UserListV
 }
 
 @Composable
-fun UserItem(item: UserListViewModel.TestItem, modifier: Modifier) {
+fun UserItem(item: UserListResponse, modifier: Modifier) {
     Column(modifier = modifier) {
         Text(
-            text = "${item.key}",
+            text = item.login,
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleSmall,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            style = MaterialTheme.typography.titleMedium,
         )
-        if (item.content.isNotEmpty())
-            Text(
-                text = item.content,
-                textAlign = TextAlign.Start,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.headlineSmall,
+        Spacer(modifier = Modifier.height(2.dp))
+        if (!item.site_admin) {
+            BadgeTextView(
+                text = stringResource(id = R.string.user_staff),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(color = MaterialTheme.colorScheme.onTertiaryContainer)
+                    .padding(vertical = 2.dp, horizontal = 6.dp)
             )
+        }
     }
-}
-
-@Composable
-fun UserAvatar(imgUrl: String) {
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data("https://huggingface.co/datasets/huggingfacejs/tasks/resolve/main/image-classification/image-classification-input.jpeg")
-            .placeholder(R.drawable.ic_launcher_background)
-            .error(R.drawable.ic_launcher_background)
-            .transformations(CircleCropTransformation())
-            .crossfade(true)
-            .build(),
-        contentDescription = null,
-        modifier = Modifier.size(48.dp)
-    )
 }
 
 @ExperimentalMaterial3Api
@@ -221,6 +210,32 @@ private fun CategoriesAppBar() {
 }
 
 @Composable
-fun ErrorView(msgCode: String) {
-    Text(text = msgCode)
+private fun ErrorView(msgCode: String?, msgContent: String?) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Image(
+            painterResource(R.drawable.ic_cancel),
+            contentDescription = "Error View",
+            modifier = Modifier
+                .size(64.dp)
+                .align(Alignment.CenterHorizontally)
+        )
+
+        msgContent?.apply {
+            Text(
+                text = this, style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center, modifier = Modifier.padding(vertical = 4.dp, horizontal = 16.dp)
+            )
+        }
+
+        msgCode?.apply {
+            Text(
+                text = stringResource(id = R.string.http_error_code_title) + "($this)",
+                textAlign = TextAlign.Center
+            )
+        }
+    }
 }

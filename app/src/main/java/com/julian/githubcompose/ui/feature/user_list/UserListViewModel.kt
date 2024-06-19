@@ -1,20 +1,20 @@
 package com.julian.githubcompose.ui.feature.user_list
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.julian.githubcompose.model.repo.base.ApiErrorException
+import com.julian.githubcompose.model.repo.user.UserRepository
+import com.julian.githubcompose.model.response.UserListResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Random
 import javax.inject.Inject
 
 @HiltViewModel
 class UserListViewModel @Inject constructor(
-
+    private val repository: UserRepository
 ) : ViewModel() {
 
     private val _uiState: MutableStateFlow<UserListState> = MutableStateFlow(UserListState.Init)
@@ -24,55 +24,52 @@ class UserListViewModel @Inject constructor(
     private val _isLast: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isLast: StateFlow<Boolean> = _isLast
 
-    private val listData = mutableListOf<TestItem>()
-
+    private val userList = mutableListOf<UserListResponse>()
 
     init {
         viewModelScope.launch {
-            getUserList()
+            getUserList(page = 20)
         }
     }
 
-
-    suspend fun getUserList() {
-        val categories = mutableListOf<TestItem>()
-        for (i in 1..20) {
-            categories.add(TestItem(i, getRandomString(10)))
-        }
-
-        listData.addAll(categories)
-        _isLast.value = listData.size >= 100
-
+    suspend fun getUserList(since: Int? = null, page: Int = 2) {
         viewModelScope.launch {
-            delay(2000)
-            _uiState.update {
-                UserListState.Success(categories = listData)
+            val result = repository.getUserList(since, page)
+
+            result.apply {
+                if (isSuccess) {
+                    getOrNull()?.apply {
+                        setUserList(this)
+                        _uiState.update {
+                            UserListState.Success(list = userList)
+                        }
+                    }
+                } else {
+                    exceptionOrNull()?.apply {
+                        if (this is ApiErrorException) {
+                            _uiState.update {
+                                UserListState.Error(msgCode = getMsgCode(), msgContent = getMsgContent())
+                            }
+                        } else {
+                            _uiState.update {
+                                UserListState.Error(msgContent = this.message)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
-    private fun getRandomString(sizeOfRandomString: Int): String {
-        val ALLOWED_CHARACTERS = "0123456789qwertyuiopasdfghjklzxcvbnm"
-        val random = Random()
-        val sb = StringBuilder(sizeOfRandomString)
-        for (i in 0 until sizeOfRandomString)
-            sb.append(ALLOWED_CHARACTERS[random.nextInt(ALLOWED_CHARACTERS.length)])
-        return sb.toString()
+    private fun setUserList(data: List<UserListResponse>) {
+        userList.addAll(data)
+        _isLast.value = userList.size >= 100
     }
-
 
     sealed interface UserListState {
         data object Init : UserListState
-
-        data class Success(val categories: List<TestItem> = listOf(), val tag: Long = System.currentTimeMillis()) : UserListState
-
-        data class Error(val msgCode: String) : UserListState
+        data class Success(val list: List<UserListResponse> = listOf(), val tag: Long = System.currentTimeMillis()) :
+            UserListState
+        data class Error(val msgCode: String?= null, val msgContent: String? = null) : UserListState
     }
-
-
-    data class TestItem(
-        val key: Int,
-        val content: String
-    )
-
 }

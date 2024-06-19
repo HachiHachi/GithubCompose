@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">GithubCompose</string>
+    <string name="http_error_code_title">Error Code:</string>
+    <string name="user_staff">STAFF</string>
 </resources>
