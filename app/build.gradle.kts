@@ -67,12 +67,14 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-
     // Hilt
     kapt (libs.hilt.compiler)
     implementation(libs.dagger)
     implementation (libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
     kapt(libs.dagger.hilt.android.compiler)
+
+    // Coil
+    implementation(libs.coil.compose)
 
 }
