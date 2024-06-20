@@ -16,7 +16,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 class UserApiProvider {
 
-    private val URL = "ht" + "tps://" + "api.github.com/"
+    private val baseUrl = "ht" + "tps://" + "api.github.com/"
 
     @Provides
     @Singleton
@@ -39,7 +39,7 @@ class UserApiProvider {
             .Builder()
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(URL)
+            .baseUrl(baseUrl)
             .build()
     }
 

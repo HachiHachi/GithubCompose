@@ -44,6 +44,7 @@ import com.julian.githubcompose.model.response.UserListResponse
 import com.julian.githubcompose.ui.component.CircleAvatarImage
 import com.julian.githubcompose.ui.component.BadgeTextView
 import com.julian.githubcompose.ui.component.CircularLoadingBar
+import com.julian.githubcompose.ui.component.CustomErrorView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalCoilApi
@@ -84,7 +85,7 @@ fun UserBody(
     Box(modifier = Modifier) {
         when (uiState) {
             is UserListViewModel.UserListState.Error -> {
-                ErrorView(uiState.msgCode, uiState.msgContent)
+                CustomErrorView(uiState.msgCode, uiState.msgContent)
             }
 
             is UserListViewModel.UserListState.Success -> {
@@ -162,7 +163,8 @@ fun UserItemCard(item: UserListResponse, onItemClicked: (item: UserListResponse)
                 )
             }
             UserItem(
-                item = item,
+                login = item.login,
+                admin = item.site_admin,
                 modifier = Modifier
                     .padding(horizontal = 12.dp)
                     .align(Alignment.CenterVertically)
@@ -172,15 +174,15 @@ fun UserItemCard(item: UserListResponse, onItemClicked: (item: UserListResponse)
 }
 
 @Composable
-fun UserItem(item: UserListResponse, modifier: Modifier) {
+fun UserItem(login: String, admin: Boolean, modifier: Modifier) {
     Column(modifier = modifier) {
         Text(
-            text = item.login,
+            text = login,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.titleMedium,
         )
         Spacer(modifier = Modifier.height(2.dp))
-        if (!item.site_admin) {
+        if (!admin) {
             BadgeTextView(
                 text = stringResource(id = R.string.user_staff),
                 modifier = Modifier
@@ -210,35 +212,4 @@ fun CategoriesAppBar() {
             titleContentColor = MaterialTheme.colorScheme.surface,
         )
     )
-}
-
-@Composable
-private fun ErrorView(msgCode: String?, msgContent: String?) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Image(
-            painterResource(R.drawable.ic_cancel),
-            contentDescription = "Error View",
-            modifier = Modifier
-                .size(64.dp)
-                .align(Alignment.CenterHorizontally)
-        )
-
-        msgContent?.apply {
-            Text(
-                text = this, style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center, modifier = Modifier.padding(vertical = 4.dp, horizontal = 16.dp)
-            )
-        }
-
-        msgCode?.apply {
-            Text(
-                text = stringResource(id = R.string.http_error_code_title) + "($this)",
-                textAlign = TextAlign.Center
-            )
-        }
-    }
 }

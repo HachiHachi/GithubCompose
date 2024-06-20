@@ -1,7 +1,7 @@
 package com.julian.githubcompose.model.repo.user
 
-import android.util.Log
 import com.julian.githubcompose.model.repo.base.BaseRemoteDataSource
+import com.julian.githubcompose.model.response.UserInfoResponse
 import com.julian.githubcompose.model.response.UserListResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,10 +22,20 @@ class UserRemoteDataSource @Inject constructor(
                     put("per_page", page)
                 }
 
-                Log.d("dada", map.toString())
                 val response = api.getUserList(queryMap = map)
                 result(response)
             }  catch (throwable: Throwable) {
+                Result.failure(throwable)
+            }
+        }
+    }
+
+    suspend fun getUserInfo(username: String): Result<UserInfoResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.getUserInfo(username = username)
+                result(response)
+            } catch (throwable: Throwable) {
                 Result.failure(throwable)
             }
         }
