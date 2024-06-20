@@ -49,7 +49,8 @@ import com.julian.githubcompose.ui.component.CircularLoadingBar
 @ExperimentalCoilApi
 @Composable
 fun UserListScreen(
-    userListViewModel: UserListViewModel
+    userListViewModel: UserListViewModel,
+    onNavigationRequested: (username: String) -> Unit
 ) {
 
     val uiState by userListViewModel.uiState.collectAsState()
@@ -65,7 +66,9 @@ fun UserListScreen(
                     .padding(it)
                     .background(color = MaterialTheme.colorScheme.background)
             ) {
-                UserBody(uiState, userListViewModel)
+                UserBody(uiState, userListViewModel) { item ->
+                    onNavigationRequested(item.login)
+                }
             }
         }
     )
@@ -76,7 +79,7 @@ fun UserListScreen(
 fun UserBody(
     uiState: UserListViewModel.UserListState,
     userListViewModel: UserListViewModel,
-    onItemClicked: (id: UserListResponse) -> Unit = { }
+    onItemClicked: (item: UserListResponse) -> Unit = { }
 ) {
     Box(modifier = Modifier) {
         when (uiState) {
@@ -104,7 +107,7 @@ fun UserBody(
 fun UserList(
     data: List<UserListResponse>,
     viewModel: UserListViewModel,
-    onItemClicked: (id: UserListResponse) -> Unit
+    onItemClicked: (item: UserListResponse) -> Unit
 ) {
     LazyColumn(Modifier.padding(4.dp)) {
         data.forEachIndexed { index, item ->
@@ -128,7 +131,7 @@ fun UserList(
 
 
 @Composable
-fun UserItemCard(item: UserListResponse, onItemClicked: (id: UserListResponse) -> Unit) {
+fun UserItemCard(item: UserListResponse, onItemClicked: (item: UserListResponse) -> Unit) {
     Card(
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -191,7 +194,7 @@ fun UserItem(item: UserListResponse, modifier: Modifier) {
 
 @ExperimentalMaterial3Api
 @Composable
-private fun CategoriesAppBar() {
+fun CategoriesAppBar() {
     TopAppBar(
         navigationIcon = {
             Icon(
