@@ -182,7 +182,7 @@ fun UserItem(login: String, admin: Boolean, modifier: Modifier) {
             style = MaterialTheme.typography.titleMedium,
         )
         Spacer(modifier = Modifier.height(2.dp))
-        if (!admin) {
+        if (admin) {
             BadgeTextView(
                 text = stringResource(id = R.string.user_staff),
                 modifier = Modifier
