@@ -14,3 +14,4 @@ Structure
 - MVVM + Kotlin
 - Custom ApiErrorException, Error handling can be easily extended.
 - Repository can be easily to extended mock environment.
+- Custom Interceptor, Decrypt and Encrypt can be easily extended.
