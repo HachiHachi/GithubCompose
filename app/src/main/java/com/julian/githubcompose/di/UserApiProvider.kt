@@ -1,9 +1,14 @@
 package com.julian.githubcompose.di
 
+import android.content.Context
+import com.julian.githubcompose.model.repo.base.ConnectivityInterceptor
+import com.julian.githubcompose.model.repo.base.DecryptionInterceptor
+import com.julian.githubcompose.model.repo.base.EncryptionInterceptor
 import com.julian.githubcompose.model.repo.user.UserApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -20,9 +25,12 @@ class UserApiProvider {
 
     @Provides
     @Singleton
-    fun provideAuthInterceptorOkHttpClient(): OkHttpClient {
+    fun provideAuthInterceptorOkHttpClient(@ApplicationContext context: Context): OkHttpClient {
         return OkHttpClient
             .Builder()
+            .addInterceptor(EncryptionInterceptor())
+            .addInterceptor(DecryptionInterceptor())
+            .addInterceptor(ConnectivityInterceptor(context))
             .connectTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
