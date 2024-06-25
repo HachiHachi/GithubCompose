@@ -79,7 +79,7 @@ jobs:
           
   debug-apk:
       name: Generate Debug APK
-      needs: [lint]
+#      needs: [lint]
       runs-on: ubuntu-latest
       steps:
         - name: Checkout the code
