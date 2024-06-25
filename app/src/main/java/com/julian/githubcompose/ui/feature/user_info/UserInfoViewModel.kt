@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserInfoViewModel @Inject constructor(
-    private val stateHandle: SavedStateHandle,
+    stateHandle: SavedStateHandle,
     private val repository: UserRepository
 ) : ViewModel() {
 
