@@ -25,3 +25,10 @@ jobs:
       - name: Run Lint
         run: ./gradlew lint
         continue-on-error: false
+
+      - name: Upload html test report
+        uses: actions/upload-artifact@v4
+        # with: 它將工件作為指定名稱上傳到路徑
+        with:
+          name: lint.html
+          path: app/build/reports/lint-results-debug.html
