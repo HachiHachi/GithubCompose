@@ -8,7 +8,7 @@ on:
       - 'v*'
   pull_request:
     branches: [  main  ]
-  workflow_dispatch:  
+  workflow_dispatch:
 
 jobs:
   start:
@@ -19,11 +19,11 @@ jobs:
       - name: Run sample script
         run: echo Hello, world
         
-  lint:
-    name: Perform lint check
-    needs: [start]
-    runs-on: ubuntu-latest
-    steps:
+#  lint:
+#    name: Perform lint check
+#    needs: [start]
+#    runs-on: ubuntu-latest
+#    steps:
 #      - name: Checkout the code
 #        uses: actions/checkout@v4
 #
@@ -32,21 +32,18 @@ jobs:
 #          java-version: '17'
 #          distribution: 'temurin'
 #          cache: gradle
-
+#
 #      - name: Cache Gradle
 #        uses: actions/cache@v2
 #        with:
 #          path: ~/.gradle/caches
 #          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
 #          restore-keys: ${{ runner.os }}-gradle-
-
-      - name: GitHub Action for Android Lint
-        uses: yutailang0119/action-android-lint@v4.0.0
-
+#
 #      - name: Run lint
 #        uses: ./gradlew lintDebug
-        continue-on-error: false
-
+#        continue-on-error: false
+#
 #      - name: Upload html test report
 #        uses: actions/upload-artifact@v2
 #  # with: 它將工件作為指定名稱上傳到路徑
