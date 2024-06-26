@@ -335,7 +335,7 @@ private fun InfoAppBar(name: String) {
                 contentDescription = "Action icon"
             )
         },
-        title = { Text(name) },
+        title = { Text("dsadadasdas") },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
             titleContentColor = MaterialTheme.colorScheme.surface,
